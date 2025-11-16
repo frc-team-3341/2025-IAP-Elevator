@@ -8,7 +8,9 @@ import com.revrobotics.RelativeEncoder;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.SparkBase;
 import com.revrobotics.spark.SparkClosedLoopController;
+import com.revrobotics.spark.SparkLimitSwitch;
 import com.revrobotics.spark.SparkMax;
+import com.revrobotics.spark.SparkBase.ControlType;
 import com.revrobotics.spark.SparkBase.PersistMode;
 import com.revrobotics.spark.SparkBase.ResetMode;
 import com.revrobotics.spark.config.ClosedLoopConfig;
@@ -27,6 +29,9 @@ public class Elevator extends SubsystemBase {
   RelativeEncoder elevatorEncoder;
   SparkClosedLoopController pid;
 
+  SparkLimitSwitch forwardLimitSwitch;
+  SparkLimitSwitch reverseLimitSwitch;
+
   double conversionFactor = 5.5/45;
 
   public Elevator() {
@@ -37,17 +42,25 @@ public class Elevator extends SubsystemBase {
     LimitSwitchConfig limitSwitchConfig = new LimitSwitchConfig();
     ClosedLoopConfig closedLoopConfig = new ClosedLoopConfig();
 
+    forwardLimitSwitch = sparkMax.getForwardLimitSwitch();
+    reverseLimitSwitch = sparkMax.getReverseLimitSwitch();
+
     closedLoopConfig.feedbackSensor(FeedbackSensor.kPrimaryEncoder);
 
     //TODO tune ts lool
-    closedLoopConfig.pidf(
-      0, 
-      0, 
-      0, 
-      0);
+    // closedLoopConfig.pidf(
+    //   0.1, 
+    //   0, 
+    //   0, 
+    //   0.00025);
+    closedLoopConfig.pid(
+      0.7,
+      0,
+      0
+    );
 
     //TODO find values for max velocity and max acceleration
-    closedLoopConfig.maxMotion.maxVelocity(0).maxAcceleration(0);
+    // closedLoopConfig.maxMotion.maxVelocity(0).maxAcceleration(0);
 
     limitSwitchConfig.forwardLimitSwitchType(Type.kNormallyClosed);
     limitSwitchConfig.reverseLimitSwitchType(Type.kNormallyClosed);
@@ -55,27 +68,57 @@ public class Elevator extends SubsystemBase {
     limitSwitchConfig.forwardLimitSwitchEnabled(true);
     limitSwitchConfig.reverseLimitSwitchEnabled(true);
 
+
+
+    config.smartCurrentLimit(39);
+
+    //We invert the encoder since normally, the encoder read negative values as the elevator
+    //was lifted up
+    config.inverted(true);
+
     config.apply(limitSwitchConfig);
     config.apply(closedLoopConfig);
+
+
 
     sparkMax.configure(config, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 
   }
 
+  public Command resetEncoder() {
+    return this.runOnce(() -> {
+      elevatorEncoder.setPosition(0);
+    });
+  }
+
+  public boolean revLimitSwitchPressed() {
+    return reverseLimitSwitch.isPressed();
+  } 
+
+  public boolean forwardLimitSwitchPressed() {
+    return forwardLimitSwitch.isPressed();
+  }
   //for a setpoint in inches
   public Command setHeight(double setpoint) {
     return this.runOnce(() -> {
 
-      pid.setReference(setpoint*conversionFactor, SparkBase.ControlType.kMAXMotionPositionControl);
+      pid.setReference(setpoint*conversionFactor, ControlType.kPosition);
 
     });
   }
 
+  public Command turnOnMotor() {
+    return this.runOnce(() -> {
+      sparkMax.set(1);
+    });
+  }
 
   @Override
   public void periodic() {
     // This method will be called once per scheduler run
     SmartDashboard.putNumber("relative encoder position", elevatorEncoder.getPosition()*conversionFactor);
+    SmartDashboard.putBoolean("Reverse Limit Switch Pressed", revLimitSwitchPressed());
+    SmartDashboard.putBoolean("Forward Limit Switch Pressed", forwardLimitSwitchPressed());
   }
 
   @Override

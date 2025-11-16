@@ -4,12 +4,11 @@
 
 package frc.robot;
 
-import frc.robot.Constants.OperatorConstants;
 import frc.robot.subsystems.Elevator;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.button.CommandJoystick;
-import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
+
 
 /**
  * This class is where the bulk of the robot should be declared. Since Command-based is a
@@ -31,11 +30,13 @@ public class RobotContainer {
 
 
   private void configureBindings() {
+    Trigger revLimitSwitchPressed = new Trigger(() -> elevator.revLimitSwitchPressed());
 
+    revLimitSwitchPressed.onTrue(elevator.resetEncoder());
   }
 
   public Command getAutonomousCommand() {
     // An example command will be run in autonomous
-    return null;
+    return elevator.setHeight(3.9);
   }
 }
