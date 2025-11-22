@@ -7,7 +7,9 @@ package frc.robot;
 import frc.robot.subsystems.Elevator;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.button.CommandJoystick;
+import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
+import static frc.robot.Constants.ElevatorConstants;
 
 
 /**
@@ -20,6 +22,7 @@ public class RobotContainer {
   // The robot's subsystems and commands are defined here...
   private final Elevator elevator = new Elevator();
   CommandJoystick joy = new CommandJoystick(0);
+  CommandXboxController cont = new CommandXboxController(1);
 
 
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
@@ -33,10 +36,19 @@ public class RobotContainer {
     Trigger revLimitSwitchPressed = new Trigger(() -> elevator.revLimitSwitchPressed());
 
     revLimitSwitchPressed.onTrue(elevator.resetEncoder());
+
+    joy.button(3).onTrue(elevator.setHeight(ElevatorConstants.INTAKE_HEIGHT));
+    joy.button(1).onTrue(elevator.setHeight(ElevatorConstants.L2_HEIGHT));
+    joy.button(2).onTrue(elevator.setHeight(ElevatorConstants.L3_HEIGHT));
+    joy.button(4).onTrue(elevator.setHeight(ElevatorConstants.L4_HEIGHT));
   }
 
   public Command getAutonomousCommand() {
     // An example command will be run in autonomous
-    return elevator.setHeight(3.9);
+    return elevator.setHeight(ElevatorConstants.L4_HEIGHT);
+  }
+
+  public void resetEncoder() {
+    elevator.resetEncoderNotCommand();
   }
 }

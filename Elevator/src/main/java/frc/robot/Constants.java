@@ -16,4 +16,15 @@ public final class Constants {
   public static class OperatorConstants {
     public static final int kDriverControllerPort = 0;
   }
+
+  public static class ElevatorConstants {
+    public static final double conversionFactor = 5.5/45;
+
+
+    //Elevator setpoint heights in inches
+    public static final double INTAKE_HEIGHT = 0;
+    public static final double L2_HEIGHT = 3.9;
+    public static final double L3_HEIGHT = 12.6;
+    public static final double L4_HEIGHT = 26.5;
+  }
 }

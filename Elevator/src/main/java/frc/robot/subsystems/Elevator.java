@@ -6,7 +6,6 @@ package frc.robot.subsystems;
 
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
-import com.revrobotics.spark.SparkBase;
 import com.revrobotics.spark.SparkClosedLoopController;
 import com.revrobotics.spark.SparkLimitSwitch;
 import com.revrobotics.spark.SparkMax;
@@ -19,20 +18,24 @@ import com.revrobotics.spark.config.SparkMaxConfig;
 import com.revrobotics.spark.config.ClosedLoopConfig.FeedbackSensor;
 import com.revrobotics.spark.config.LimitSwitchConfig.Type;
 
+import edu.wpi.first.math.controller.ElevatorFeedforward;
+import edu.wpi.first.math.trajectory.TrapezoidProfile;
+import edu.wpi.first.math.trajectory.TrapezoidProfile.Constraints;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import static frc.robot.Constants.ElevatorConstants;
 
 public class Elevator extends SubsystemBase {
   /** Creates a new ExampleSubsystem. */
   SparkMax sparkMax = new SparkMax(25, MotorType.kBrushless);
   RelativeEncoder elevatorEncoder;
   SparkClosedLoopController pid;
+  double setpoint;
 
   SparkLimitSwitch forwardLimitSwitch;
   SparkLimitSwitch reverseLimitSwitch;
-
-  double conversionFactor = 5.5/45;
 
   public Elevator() {
     SparkMaxConfig config = new SparkMaxConfig();
@@ -46,18 +49,19 @@ public class Elevator extends SubsystemBase {
     reverseLimitSwitch = sparkMax.getReverseLimitSwitch();
 
     closedLoopConfig.feedbackSensor(FeedbackSensor.kPrimaryEncoder);
+    TrapezoidProfile profile = new TrapezoidProfile(new Constraints(3, 4));
 
-    //TODO tune ts lool
-    // closedLoopConfig.pidf(
-    //   0.1, 
-    //   0, 
-    //   0, 
-    //   0.00025);
-    closedLoopConfig.pid(
-      0.7,
-      0,
-      0
-    );
+    //BAD CONSTANTS TUNE PLS
+    closedLoopConfig.pidf(
+      0.1, 
+      0, 
+      0.8, 
+      0.00025);
+    // closedLoopConfig.pid(
+    //   0.1,
+    //   0,
+    //   0
+    // );   
 
     //TODO find values for max velocity and max acceleration
     // closedLoopConfig.maxMotion.maxVelocity(0).maxAcceleration(0);
@@ -91,6 +95,10 @@ public class Elevator extends SubsystemBase {
     });
   }
 
+  public void resetEncoderNotCommand() {
+    elevatorEncoder.setPosition(0);
+  }
+
   public boolean revLimitSwitchPressed() {
     return reverseLimitSwitch.isPressed();
   } 
@@ -101,8 +109,13 @@ public class Elevator extends SubsystemBase {
   //for a setpoint in inches
   public Command setHeight(double setpoint) {
     return this.runOnce(() -> {
+      
+      this.setpoint = setpoint;
 
-      pid.setReference(setpoint*conversionFactor, ControlType.kPosition);
+      //we divide the setpoint by the conversion factor since 
+      //the setpoint is in inches, and the conversion factor is inches/motor rotation
+      //so inches/inches/motor rotation gives motor rotations
+      pid.setReference(this.setpoint/ElevatorConstants.conversionFactor, ControlType.kPosition);
 
     });
   }
@@ -110,15 +123,18 @@ public class Elevator extends SubsystemBase {
   public Command turnOnMotor() {
     return this.runOnce(() -> {
       sparkMax.set(1);
+  
     });
   }
 
   @Override
   public void periodic() {
     // This method will be called once per scheduler run
-    SmartDashboard.putNumber("relative encoder position", elevatorEncoder.getPosition()*conversionFactor);
+    SmartDashboard.putNumber("relative encoder position", elevatorEncoder.getPosition()*ElevatorConstants.conversionFactor);
     SmartDashboard.putBoolean("Reverse Limit Switch Pressed", revLimitSwitchPressed());
     SmartDashboard.putBoolean("Forward Limit Switch Pressed", forwardLimitSwitchPressed());
+    SmartDashboard.putNumber("setpoint", setpoint);
+    SmartDashboard.putNumber("motor output", sparkMax.getAppliedOutput());
   }
 
   @Override
