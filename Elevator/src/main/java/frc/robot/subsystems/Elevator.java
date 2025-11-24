@@ -14,18 +14,15 @@ import com.revrobotics.spark.SparkBase.PersistMode;
 import com.revrobotics.spark.SparkBase.ResetMode;
 import com.revrobotics.spark.config.ClosedLoopConfig;
 import com.revrobotics.spark.config.LimitSwitchConfig;
+import com.revrobotics.spark.config.SoftLimitConfig;
 import com.revrobotics.spark.config.SparkMaxConfig;
 import com.revrobotics.spark.config.ClosedLoopConfig.FeedbackSensor;
 import com.revrobotics.spark.config.LimitSwitchConfig.Type;
 
-import edu.wpi.first.math.controller.ElevatorFeedforward;
-import edu.wpi.first.math.trajectory.TrapezoidProfile;
-import edu.wpi.first.math.trajectory.TrapezoidProfile.Constraints;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import static frc.robot.Constants.ElevatorConstants;
+import frc.robot.Constants.ElevatorConstants;
 
 public class Elevator extends SubsystemBase {
   /** Creates a new ExampleSubsystem. */
@@ -45,11 +42,13 @@ public class Elevator extends SubsystemBase {
     LimitSwitchConfig limitSwitchConfig = new LimitSwitchConfig();
     ClosedLoopConfig closedLoopConfig = new ClosedLoopConfig();
 
+    //TODO make working soft limits for the elevator
+    SoftLimitConfig softLimitConfig = new SoftLimitConfig();
+
     forwardLimitSwitch = sparkMax.getForwardLimitSwitch();
     reverseLimitSwitch = sparkMax.getReverseLimitSwitch();
 
     closedLoopConfig.feedbackSensor(FeedbackSensor.kPrimaryEncoder);
-    TrapezoidProfile profile = new TrapezoidProfile(new Constraints(3, 4));
 
     //BAD CONSTANTS TUNE PLS
     closedLoopConfig.pidf(
@@ -57,11 +56,6 @@ public class Elevator extends SubsystemBase {
       0, 
       0.8, 
       0.00025);
-    // closedLoopConfig.pid(
-    //   0.1,
-    //   0,
-    //   0
-    // );   
 
     //TODO find values for max velocity and max acceleration
     // closedLoopConfig.maxMotion.maxVelocity(0).maxAcceleration(0);
@@ -118,6 +112,10 @@ public class Elevator extends SubsystemBase {
       pid.setReference(this.setpoint/ElevatorConstants.conversionFactor, ControlType.kPosition);
 
     });
+  }
+
+  public double setpoint() {
+    return setpoint;
   }
 
   public Command turnOnMotor() {
