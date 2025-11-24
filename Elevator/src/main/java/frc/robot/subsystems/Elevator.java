@@ -89,6 +89,11 @@ public class Elevator extends SubsystemBase {
     });
   }
 
+  //TODO i just used a random number here have to tune this tho
+  public boolean elevatorMoving() {
+    return elevatorEncoder.getVelocity() > 3;
+  }
+
   public void resetEncoderNotCommand() {
     elevatorEncoder.setPosition(0);
   }

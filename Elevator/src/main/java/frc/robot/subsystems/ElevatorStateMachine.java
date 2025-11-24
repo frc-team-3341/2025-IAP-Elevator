@@ -1,11 +1,9 @@
 package frc.robot.subsystems;
-import edu.wpi.first.wpilibj.motorcontrol.NidecBrushless;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.FunctionalCommand;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.Constants;
 import frc.robot.Constants.ElevatorConstants;
 
 public class ElevatorStateMachine extends SubsystemBase {
@@ -29,6 +27,10 @@ public class ElevatorStateMachine extends SubsystemBase {
         return currentElevatorState;
     }
 
+    public boolean notIntakeState() {
+        return currentElevatorState != ElevatorState.MOVING_TO_INTAKE;
+    }
+
     //Inspired by FRC Team 3255 SuperNURDs state machine implementation
     //build thread found here! https://www.chiefdelphi.com/t/frc-3255-supernurds-2025-build-thread/477499/95
     public Command tryState(ElevatorState newState){
@@ -47,6 +49,7 @@ public class ElevatorStateMachine extends SubsystemBase {
                     case MOVING_TO_L4:
                     case HOLDING:
                     case MANUAL:
+                        setElevatorState(ElevatorState.MOVING_TO_INTAKE);
                         return elevator.setHeight(ElevatorConstants.INTAKE_HEIGHT);
                 }
                 break;
@@ -57,6 +60,7 @@ public class ElevatorStateMachine extends SubsystemBase {
                 }
                 
                 else {
+                    setElevatorState(ElevatorState.MOVING_TO_L2);
                     return elevator.setHeight(ElevatorConstants.L2_HEIGHT);
                 }
 
@@ -66,24 +70,31 @@ public class ElevatorStateMachine extends SubsystemBase {
                 }
             
                 else {
+                    setElevatorState(ElevatorState.MOVING_TO_L3);
                     return elevator.setHeight(ElevatorConstants.L3_HEIGHT);
                 }
+
             case MOVING_TO_L4:
                 if (currentElevatorState == ElevatorState.MOVING_TO_L4) {
                     return Commands.print("Already moving to L4!");
                 }
             
                 else {
+                    setElevatorState(ElevatorState.MOVING_TO_L4);
                     return elevator.setHeight(ElevatorConstants.L4_HEIGHT);
                 }
 
-            case HOLDING:
+            case HOLDING: 
+                setElevatorState(ElevatorState.HOLDING);
                 return elevator.setHeight(elevator.setpoint());
                 
             //TODO manual control for elevator
             case MANUAL:
                 
             case IDLE:
+                setElevatorState(ElevatorState.IDLE);
+
+                //return an empty command for idle state
                 return new InstantCommand(() -> {});            
         }
         
