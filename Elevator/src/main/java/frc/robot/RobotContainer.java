@@ -68,6 +68,7 @@ public class RobotContainer {
   private void configureBindings() {
     Trigger revLimitSwitchPressed = new Trigger(() -> elevator.revLimitSwitchPressed());
 
+    //THIS IS BAD LOGIC FIX !!!!!
     BooleanSupplier setpointSupplier = () -> !elevator.elevatorMoving();
 
     Trigger atSetpoint = new Trigger(setpointSupplier);
