@@ -4,6 +4,9 @@
 
 package frc.robot.subsystems;
 
+import java.util.function.BooleanSupplier;
+import java.util.function.Consumer;
+
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.SparkClosedLoopController;
@@ -19,10 +22,14 @@ import com.revrobotics.spark.config.SparkMaxConfig;
 import com.revrobotics.spark.config.ClosedLoopConfig.FeedbackSensor;
 import com.revrobotics.spark.config.LimitSwitchConfig.Type;
 
+import edu.wpi.first.wpilibj.GenericHID.RumbleType;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.FunctionalCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import frc.robot.Constants.ElevatorConstants;
+import frc.robot.Robot;
 
 public class Elevator extends SubsystemBase {
   /** Creates a new ExampleSubsystem. */
@@ -34,10 +41,14 @@ public class Elevator extends SubsystemBase {
   SparkLimitSwitch forwardLimitSwitch;
   SparkLimitSwitch reverseLimitSwitch;
 
-  public Elevator() {
+  CommandXboxController xboxController;
+
+  public Elevator(CommandXboxController xboxController) {
     SparkMaxConfig config = new SparkMaxConfig();
     elevatorEncoder = sparkMax.getEncoder();
     pid = sparkMax.getClosedLoopController();
+
+    this.xboxController = xboxController;
 
     LimitSwitchConfig limitSwitchConfig = new LimitSwitchConfig();
     ClosedLoopConfig closedLoopConfig = new ClosedLoopConfig();
@@ -117,6 +128,27 @@ public class Elevator extends SubsystemBase {
       pid.setReference(this.setpoint/ElevatorConstants.conversionFactor, ControlType.kPosition);
 
     });
+  }
+
+  //TODO idk if this works test later
+  public Command rumbleCommand() {
+    double startTime = Robot.currentTime;
+
+    Runnable onExecute = () -> {
+      xboxController.setRumble(RumbleType.kBothRumble, 0.5);
+    };
+
+    Consumer<Boolean> onEnd = interrupted -> {
+      xboxController.setRumble(RumbleType.kBothRumble, 0);
+    };
+
+    BooleanSupplier isFinished = () -> {
+      return (Robot.currentTime - startTime) >= 0.5;
+    };
+
+    Command rumb = new FunctionalCommand(() -> {}, onExecute, onEnd, isFinished);
+
+    return rumb;
   }
 
   public double setpoint() {

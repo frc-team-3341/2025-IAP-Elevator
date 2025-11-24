@@ -1,4 +1,5 @@
 package frc.robot.subsystems;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.FunctionalCommand;
@@ -101,8 +102,13 @@ public class ElevatorStateMachine extends SubsystemBase {
         return Commands.print("the state provided was invalid ruh roh (this shouldn't happen)");
     }
 
+    @Override
+    public void periodic() {
+        SmartDashboard.putString("Current Elevator State", this.currentElevatorState.toString());
+    }
 
-    public enum ElevatorState {
+
+    public enum ElevatorState{
         IDLE,
 
         //moving states
