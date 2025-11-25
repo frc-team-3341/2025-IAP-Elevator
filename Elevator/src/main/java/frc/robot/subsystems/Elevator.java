@@ -22,6 +22,8 @@ import com.revrobotics.spark.config.SparkMaxConfig;
 import com.revrobotics.spark.config.ClosedLoopConfig.FeedbackSensor;
 import com.revrobotics.spark.config.LimitSwitchConfig.Type;
 
+import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.GenericHID.RumbleType;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -100,9 +102,11 @@ public class Elevator extends SubsystemBase {
     });
   }
 
-  //TODO i just used a random number here have to tune this tho
-  public boolean elevatorMoving() {
-    return elevatorEncoder.getVelocity() > 3;
+  //TODO this probably will need to be tuned
+  public boolean atSetpoint() {
+    double pos = elevatorEncoder.getPosition()*ElevatorConstants.conversionFactor;
+
+    return MathUtil.isNear(setpoint, pos, 0.05);
   }
 
   public void resetEncoderNotCommand() {

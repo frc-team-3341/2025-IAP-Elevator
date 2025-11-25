@@ -68,8 +68,8 @@ public class RobotContainer {
   private void configureBindings() {
     Trigger revLimitSwitchPressed = new Trigger(() -> elevator.revLimitSwitchPressed());
 
-    //THIS IS BAD LOGIC FIX !!!!!
-    BooleanSupplier setpointSupplier = () -> !elevator.elevatorMoving();
+    //This logic should be fixed, hopefully it works
+    BooleanSupplier setpointSupplier = () -> elevator.atSetpoint();
 
     Trigger atSetpoint = new Trigger(setpointSupplier);
 
@@ -81,15 +81,15 @@ public class RobotContainer {
     cont.y().onTrue(MOVING_TO_L4);
 
     //bring the elevator to a holding state if it is at setpoint and not in the intake state
-    //also makes the controller rumble
     //i think this logic is right??
-    atSetpoint.and(() -> stateMachine.notIntakeState()).onTrue(
-      new ParallelCommandGroup(HOLDING, elevator.rumbleCommand())
-    );
+    atSetpoint.and(() -> stateMachine.notIntakeState()).onTrue(HOLDING);
 
     //otherwise if the elevator was in the moving to intake state, bring the elevator
-    //state to idle. also makes the controller rumble
-    atSetpoint.onTrue(new ParallelCommandGroup(IDLE, elevator.rumbleCommand()));
+    //state to idle. 
+    atSetpoint.and(() -> !stateMachine.notIntakeState()).onTrue(IDLE);
+
+    //make the controller rumble when the elevator reaches a setpoint
+    atSetpoint.onTrue(elevator.rumbleCommand());
 
   }
 
