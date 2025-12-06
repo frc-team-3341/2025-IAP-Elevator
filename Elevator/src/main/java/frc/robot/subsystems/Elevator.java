@@ -8,23 +8,23 @@ import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 
 import com.revrobotics.RelativeEncoder;
-import com.revrobotics.spark.SparkLowLevel.MotorType;
-import com.revrobotics.spark.SparkClosedLoopController;
-import com.revrobotics.spark.SparkLimitSwitch;
-import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.SparkBase.ControlType;
 import com.revrobotics.spark.SparkBase.PersistMode;
 import com.revrobotics.spark.SparkBase.ResetMode;
+import com.revrobotics.spark.SparkClosedLoopController;
+import com.revrobotics.spark.SparkLimitSwitch;
+import com.revrobotics.spark.SparkLowLevel.MotorType;
+import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.config.ClosedLoopConfig;
+import com.revrobotics.spark.config.ClosedLoopConfig.FeedbackSensor;
 import com.revrobotics.spark.config.LimitSwitchConfig;
+import com.revrobotics.spark.config.LimitSwitchConfig.Type;
 import com.revrobotics.spark.config.SoftLimitConfig;
 import com.revrobotics.spark.config.SparkMaxConfig;
-import com.revrobotics.spark.config.ClosedLoopConfig.FeedbackSensor;
-import com.revrobotics.spark.config.LimitSwitchConfig.Type;
 
 import edu.wpi.first.math.MathUtil;
-import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.GenericHID.RumbleType;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.FunctionalCommand;
@@ -39,9 +39,11 @@ public class Elevator extends SubsystemBase {
   RelativeEncoder elevatorEncoder;
   SparkClosedLoopController pid;
   double setpoint;
+  int counter = 0;
 
   SparkLimitSwitch forwardLimitSwitch;
   SparkLimitSwitch reverseLimitSwitch;
+  private double startTime;
 
   CommandXboxController xboxController;
 
@@ -106,7 +108,7 @@ public class Elevator extends SubsystemBase {
   public boolean atSetpoint() {
     double pos = elevatorEncoder.getPosition()*ElevatorConstants.conversionFactor;
 
-    return MathUtil.isNear(setpoint, pos, 0.05);
+    return MathUtil.isNear(setpoint, pos, 0.75);
   }
 
   public void resetEncoderNotCommand() {
@@ -136,10 +138,14 @@ public class Elevator extends SubsystemBase {
 
   //TODO idk if this works test later
   public Command rumbleCommand() {
-    double startTime = Robot.currentTime;
+
+    Runnable onInitialize = () -> {
+      counter = 0;
+    };
 
     Runnable onExecute = () -> {
-      xboxController.setRumble(RumbleType.kBothRumble, 0.5);
+      xboxController.setRumble(RumbleType.kBothRumble, .5);
+      counter++;
     };
 
     Consumer<Boolean> onEnd = interrupted -> {
@@ -147,12 +153,12 @@ public class Elevator extends SubsystemBase {
     };
 
     BooleanSupplier isFinished = () -> {
-      return (Robot.currentTime - startTime) >= 0.5;
+      return counter >= 25;
     };
 
-    Command rumb = new FunctionalCommand(() -> {}, onExecute, onEnd, isFinished);
+    Command rumble = new FunctionalCommand(onInitialize, onExecute, onEnd, isFinished);
 
-    return rumb;
+    return rumble;
   }
 
   public double setpoint() {
@@ -174,6 +180,7 @@ public class Elevator extends SubsystemBase {
     SmartDashboard.putBoolean("Forward Limit Switch Pressed", forwardLimitSwitchPressed());
     SmartDashboard.putNumber("setpoint", setpoint);
     SmartDashboard.putNumber("motor output", sparkMax.getAppliedOutput());
+    SmartDashboard.putNumber("current robot time", Robot.currentTime);
   }
 
   @Override

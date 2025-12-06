@@ -92,6 +92,8 @@ public class ElevatorStateMachine extends SubsystemBase {
                 
             //TODO manual control for elevator
             case MANUAL:
+                setElevatorState(ElevatorState.MANUAL);
+               
                 
             case IDLE:
                 setElevatorState(ElevatorState.IDLE);
