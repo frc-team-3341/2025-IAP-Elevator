@@ -82,11 +82,11 @@ public class RobotContainer {
 
     //bring the elevator to a holding state if it is at setpoint and not in the intake state
     //i think this logic is right??
-    atSetpoint.and(() -> stateMachine.notIntakeState()).onTrue(HOLDING);
+    atSetpoint.and(() -> !stateMachine.intakeIdleState()).onTrue(HOLDING.andThen(Commands.print("holding")));
 
     //otherwise if the elevator was in the moving to intake state, bring the elevator
     //state to idle. 
-    atSetpoint.and(() -> !stateMachine.notIntakeState()).onTrue(IDLE);
+    atSetpoint.and(() -> stateMachine.intakeIdleState()).onTrue(IDLE.andThen(Commands.print("intake")));
 
     //make the controller rumble when the elevator reaches a setpoint
     atSetpoint.onTrue(elevator.rumbleCommand());

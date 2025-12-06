@@ -28,8 +28,9 @@ public class ElevatorStateMachine extends SubsystemBase {
         return currentElevatorState;
     }
 
-    public boolean notIntakeState() {
-        return currentElevatorState != ElevatorState.MOVING_TO_INTAKE;
+    public boolean intakeIdleState() {
+        return currentElevatorState.equals(ElevatorState.MOVING_TO_INTAKE) || 
+        currentElevatorState.equals(ElevatorState.IDLE);
     }
 
     //Inspired by FRC Team 3255 SuperNURDs state machine implementation
@@ -105,6 +106,7 @@ public class ElevatorStateMachine extends SubsystemBase {
     @Override
     public void periodic() {
         SmartDashboard.putString("Current Elevator State", this.currentElevatorState.toString());
+        SmartDashboard.putBoolean("intake state", intakeIdleState());
     }
 
 
