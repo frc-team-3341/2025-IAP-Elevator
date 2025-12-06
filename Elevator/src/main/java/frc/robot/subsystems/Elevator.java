@@ -6,6 +6,7 @@ package frc.robot.subsystems;
 
 import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
+import java.util.function.DoubleSupplier;
 
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.spark.SparkBase.ControlType;
@@ -51,6 +52,7 @@ public class Elevator extends SubsystemBase {
     SparkMaxConfig config = new SparkMaxConfig();
     elevatorEncoder = sparkMax.getEncoder();
     pid = sparkMax.getClosedLoopController();
+
 
     this.xboxController = xboxController;
 
@@ -109,10 +111,6 @@ public class Elevator extends SubsystemBase {
     double pos = elevatorEncoder.getPosition()*ElevatorConstants.conversionFactor;
 
     return MathUtil.isNear(setpoint, pos, 0.75);
-  }
-
-  public void resetEncoderNotCommand() {
-    elevatorEncoder.setPosition(0);
   }
 
   public boolean revLimitSwitchPressed() {

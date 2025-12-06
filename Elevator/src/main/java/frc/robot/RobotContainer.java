@@ -99,8 +99,5 @@ public class RobotContainer {
     return elevator.setHeight(ElevatorConstants.L4_HEIGHT);
   }
 
-  //TODO make homing command
-  public void resetEncoder() {
-    elevator.resetEncoderNotCommand();
-  }
+  
 }
