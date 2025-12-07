@@ -10,7 +10,9 @@ import frc.robot.subsystems.ElevatorStateMachine;
 import frc.robot.subsystems.ElevatorStateMachine.ElevatorState;
 
 import java.util.function.BooleanSupplier;
+import java.util.function.DoubleSupplier;
 
+import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
@@ -52,6 +54,9 @@ public class RobotContainer {
   Command HOLDING = Commands.deferredProxy(
       () -> stateMachine.tryState(ElevatorState.HOLDING));
 
+  Command MANUAL_HOLDING = Commands.deferredProxy(
+      () -> stateMachine.tryState(ElevatorState.HOLDING));
+
   Command MANUAL = Commands.deferredProxy(
       () -> stateMachine.tryState(ElevatorState.MANUAL));
 
@@ -70,24 +75,34 @@ public class RobotContainer {
 
     //This logic should be fixed, hopefully it works
     BooleanSupplier setpointSupplier = () -> elevator.atSetpoint();
+    DoubleSupplier leftJoySupplier = () -> cont.getLeftY();
 
     Trigger atSetpoint = new Trigger(setpointSupplier);
+    Trigger manualControl = new Trigger(() -> elevator.isInRange(leftJoySupplier));
 
     revLimitSwitchPressed.onTrue(elevator.resetEncoder());
+    revLimitSwitchPressed.onTrue(IDLE);
 
     cont.x().onTrue(MOVING_TO_INTAKE);
     cont.a().onTrue(MOVING_TO_L2);
     cont.b().onTrue(MOVING_TO_L3);
     cont.y().onTrue(MOVING_TO_L4);
 
+    manualControl.onTrue(MANUAL).onFalse(MANUAL_HOLDING);
+    // manualControl.and(() -> !elevator.revLimitSwitchPressed()).onFalse(MANUAL_HOLDING);
+
     //bring the elevator to a holding state if it is at setpoint and not in the intake state
     //i think this logic is right??
 
-    atSetpoint.and(() -> !stateMachine.intakeIdleState()).onTrue(new ParallelCommandGroup(HOLDING, elevator.rumbleCommand()));
+    // atSetpoint.and(() -> !stateMachine.intakeIdleState()).onTrue(new ParallelCommandGroup(HOLDING, elevator.rumbleCommand()));
+    atSetpoint.and(() -> !stateMachine.intakeIdleState()).onTrue(HOLDING.alongWith(elevator.rumbleCommand()));
 
     //otherwise if the elevator was in the moving to intake state, bring the elevator
     //state to idle. 
-    atSetpoint.and(() -> stateMachine.intakeIdleState()).onTrue(new ParallelCommandGroup(IDLE, elevator.rumbleCommand()));
+    atSetpoint.and(() -> stateMachine.intakeIdleState()).onTrue(elevator.rumbleCommand());
+
+    // atSetpoint.onTrue(elevator.rumbleCommand());
+
 
     //make the controller rumble when the elevator reaches a setpoint
     // atSetpoint.onTrue(elevator.rumbleCommand());
