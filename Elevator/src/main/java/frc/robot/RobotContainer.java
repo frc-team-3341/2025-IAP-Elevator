@@ -12,7 +12,7 @@ import frc.robot.subsystems.ElevatorStateMachine.ElevatorState;
 import java.util.function.BooleanSupplier;
 import java.util.function.DoubleSupplier;
 
-import edu.wpi.first.wpilibj.DoubleSolenoid;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
@@ -32,7 +32,7 @@ public class RobotContainer {
   private final Elevator elevator = new Elevator(cont);
 
   private final ElevatorStateMachine stateMachine = new ElevatorStateMachine(elevator);
-
+  
   /** 
    * We create commands beforehand just for organization purposes so the calls to the commands
    * in the button bindings looks cleaner. We also use Commands.deferredProxy() so that the
@@ -63,6 +63,10 @@ public class RobotContainer {
   Command IDLE = Commands.deferredProxy(
       () -> stateMachine.tryState(ElevatorState.IDLE));
 
+  Command MANUAL_IDLE = Commands.deferredProxy(
+      () -> stateMachine.tryState(ElevatorState.IDLE)
+  );
+
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
     // Configure the trigger bindings
@@ -89,6 +93,12 @@ public class RobotContainer {
     cont.y().onTrue(MOVING_TO_L4);
 
     manualControl.onTrue(MANUAL).onFalse(MANUAL_HOLDING);
+
+    manualControl.negate().and(revLimitSwitchPressed).onTrue(MANUAL_IDLE);
+    
+    //When it is NOT in manual control AND IS idle, witch to idle
+    // manualControl.and(() -> !elevator.isIdle()).onFalse(MANUAL_IDLE);
+
     // manualControl.and(() -> !elevator.revLimitSwitchPressed()).onFalse(MANUAL_HOLDING);
 
     //bring the elevator to a holding state if it is at setpoint and not in the intake state
@@ -114,8 +124,4 @@ public class RobotContainer {
     return elevator.setHeight(ElevatorConstants.L4_HEIGHT);
   }
 
-  //TODO make homing command
-  public void resetEncoder() {
-    elevator.resetEncoderNotCommand();
-  }
 }

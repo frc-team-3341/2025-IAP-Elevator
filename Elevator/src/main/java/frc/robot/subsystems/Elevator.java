@@ -117,10 +117,6 @@ public class Elevator extends SubsystemBase {
     return MathUtil.isNear(setpoint, pos, 0.75);
   }
 
-  public void resetEncoderNotCommand() {
-    elevatorEncoder.setPosition(0);
-  }
-
   public boolean isInRange(DoubleSupplier dub) {
     return Math.abs(dub.getAsDouble()) > 0.05;
   }
@@ -190,6 +186,7 @@ public class Elevator extends SubsystemBase {
   public double setpoint() {
     return setpoint;
   }
+
 
   public Command turnOnMotor() {
     return this.runOnce(() -> {
