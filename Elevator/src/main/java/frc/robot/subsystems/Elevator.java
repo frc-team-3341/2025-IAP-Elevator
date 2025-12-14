@@ -25,9 +25,11 @@ import com.revrobotics.spark.config.SparkMaxConfig;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.wpilibj.GenericHID.RumbleType;
+import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.FunctionalCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
@@ -37,23 +39,25 @@ import frc.robot.Robot;
 public class Elevator extends SubsystemBase {
   /** Creates a new ExampleSubsystem. */
   SparkMax sparkMax = new SparkMax(25, MotorType.kBrushless);
+
   RelativeEncoder elevatorEncoder;
   SparkClosedLoopController pid;
+
   double setpoint;
   int counter = 0;
+  boolean teleopControl;
 
   SparkLimitSwitch forwardLimitSwitch;
   SparkLimitSwitch reverseLimitSwitch;
-  private double startTime;
 
+  double input;
+  DoubleSupplier joy;
   CommandXboxController xboxController;
 
   public Elevator(CommandXboxController xboxController) {
     SparkMaxConfig config = new SparkMaxConfig();
     elevatorEncoder = sparkMax.getEncoder();
     pid = sparkMax.getClosedLoopController();
-
-
     this.xboxController = xboxController;
 
     LimitSwitchConfig limitSwitchConfig = new LimitSwitchConfig();
@@ -113,6 +117,10 @@ public class Elevator extends SubsystemBase {
     return MathUtil.isNear(setpoint, pos, 0.75);
   }
 
+  public boolean isInRange(DoubleSupplier dub) {
+    return Math.abs(dub.getAsDouble()) > 0.05;
+  }
+
   public boolean revLimitSwitchPressed() {
     return reverseLimitSwitch.isPressed();
   } 
@@ -124,7 +132,7 @@ public class Elevator extends SubsystemBase {
   public Command setHeight(double setpoint) {
     return this.runOnce(() -> {
       
-      this.setpoint = setpoint;
+      this.setpoint = MathUtil.clamp(setpoint, 0, 26.5);
 
       //we divide the setpoint by the conversion factor since 
       //the setpoint is in inches, and the conversion factor is inches/motor rotation
@@ -133,6 +141,22 @@ public class Elevator extends SubsystemBase {
 
     });
   }
+  public Command manualControl(DoubleSupplier joy) {
+
+    
+    return this.run(() -> {
+      
+      input = MathUtil.applyDeadband(joy.getAsDouble(), 0.1);
+
+      setpoint += (input * -1) * .25;
+      MathUtil.clamp(setpoint, 0, 26);
+      
+
+      pid.setReference(this.setpoint/ElevatorConstants.conversionFactor, ControlType.kPosition);
+
+    });
+  }
+
 
   //TODO idk if this works test later
   public Command rumbleCommand() {
@@ -162,6 +186,7 @@ public class Elevator extends SubsystemBase {
   public double setpoint() {
     return setpoint;
   }
+
 
   public Command turnOnMotor() {
     return this.runOnce(() -> {
