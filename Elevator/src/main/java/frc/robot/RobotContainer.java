@@ -28,7 +28,7 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
  */
 public class RobotContainer {
   // The robot's subsystems and commands are defined here...
-  CommandXboxController cont = new CommandXboxController(1);
+  CommandXboxController cont = new CommandXboxController(0);
   private final Elevator elevator = new Elevator(cont);
 
   private final ElevatorStateMachine stateMachine = new ElevatorStateMachine(elevator);

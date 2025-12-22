@@ -66,6 +66,12 @@ public class Elevator extends SubsystemBase {
     //TODO make working soft limits for the elevator
     SoftLimitConfig softLimitConfig = new SoftLimitConfig();
 
+    softLimitConfig.reverseSoftLimit(0);
+    softLimitConfig.forwardSoftLimit(26.7);
+
+    softLimitConfig.forwardSoftLimitEnabled(true);
+    softLimitConfig.reverseSoftLimitEnabled(true);
+
     forwardLimitSwitch = sparkMax.getForwardLimitSwitch();
     reverseLimitSwitch = sparkMax.getReverseLimitSwitch();
 
@@ -97,6 +103,7 @@ public class Elevator extends SubsystemBase {
 
     config.apply(limitSwitchConfig);
     config.apply(closedLoopConfig);
+    config.apply(softLimitConfig);
 
 
 
@@ -148,7 +155,13 @@ public class Elevator extends SubsystemBase {
       
       input = MathUtil.applyDeadband(joy.getAsDouble(), 0.1);
 
-      setpoint += (input * -1) * .25;
+      if (setpoint < 2 || setpoint > 26) {
+        setpoint += (input * -1) * 0.10;
+      }
+      else {
+        setpoint += (input*-1)*0.25;
+      }
+
       MathUtil.clamp(setpoint, 0, 26);
       
 
