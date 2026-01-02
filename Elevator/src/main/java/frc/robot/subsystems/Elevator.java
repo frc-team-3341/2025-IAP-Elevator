@@ -66,11 +66,11 @@ public class Elevator extends SubsystemBase {
     //TODO make working soft limits for the elevator
     SoftLimitConfig softLimitConfig = new SoftLimitConfig();
 
-    softLimitConfig.reverseSoftLimit(0);
-    softLimitConfig.forwardSoftLimit(26.7);
+    // softLimitConfig.reverseSoftLimit(0);
+    // softLimitConfig.forwardSoftLimit(26.7);
 
-    softLimitConfig.forwardSoftLimitEnabled(true);
-    softLimitConfig.reverseSoftLimitEnabled(true);
+    // softLimitConfig.forwardSoftLimitEnabled(true);
+    // softLimitConfig.reverseSoftLimitEnabled(true);
 
     forwardLimitSwitch = sparkMax.getForwardLimitSwitch();
     reverseLimitSwitch = sparkMax.getReverseLimitSwitch();
