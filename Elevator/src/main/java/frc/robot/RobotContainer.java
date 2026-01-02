@@ -8,9 +8,12 @@ import frc.robot.Constants.ElevatorConstants;
 import frc.robot.subsystems.Elevator;
 import frc.robot.subsystems.ElevatorStateMachine;
 import frc.robot.subsystems.ElevatorStateMachine.ElevatorState;
+import frc.robot.subsystems.Servo;
+import frc.robot.commands.*;
 
 import java.util.function.BooleanSupplier;
 import java.util.function.DoubleSupplier;
+
 
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -30,6 +33,7 @@ public class RobotContainer {
   // The robot's subsystems and commands are defined here...
   CommandXboxController cont = new CommandXboxController(0);
   private final Elevator elevator = new Elevator(cont);
+  private final Servo s = new Servo();
 
   private final ElevatorStateMachine stateMachine = new ElevatorStateMachine(elevator);
   
@@ -87,10 +91,17 @@ public class RobotContainer {
     revLimitSwitchPressed.onTrue(elevator.resetEncoder());
     revLimitSwitchPressed.onTrue(IDLE);
 
-    cont.x().onTrue(MOVING_TO_INTAKE);
-    cont.a().onTrue(MOVING_TO_L2);
-    cont.b().onTrue(MOVING_TO_L3);
-    cont.y().onTrue(MOVING_TO_L4);
+    // cont.x().onTrue(MOVING_TO_INTAKE);
+    // cont.a().onTrue(MOVING_TO_L2);
+    // cont.b().onTrue(MOVING_TO_L3);
+    // cont.y().onTrue(MOVING_TO_L4);
+
+    cont.leftBumper().onTrue(new javnishservo(s, 500));
+    cont.rightBumper().onTrue(new javnishservo(s, 1000));
+    cont.a().onTrue(new javnishservo(s, 1500));
+    cont.b().onTrue(new javnishservo(s, 2000));
+    cont.x().onTrue(new javnishservo(s, 2500));
+
 
     manualControl.onTrue(MANUAL).onFalse(MANUAL_HOLDING);
 
