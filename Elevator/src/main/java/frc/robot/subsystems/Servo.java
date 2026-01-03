@@ -16,4 +16,9 @@ public class Servo extends SubsystemBase{
         p.setPulseTimeMicroseconds(time);
     }
 
+    public void setPosition(int angle) {
+        int time = (int) ((20.0/3)*(angle))+500;
+        setPulseTimeMicroseconds(time);
+    }
+
 }
