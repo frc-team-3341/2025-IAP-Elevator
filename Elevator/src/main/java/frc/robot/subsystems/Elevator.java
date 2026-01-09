@@ -170,8 +170,6 @@ public class Elevator extends SubsystemBase {
     });
   }
 
-
-  //TODO idk if this works test later
   public Command rumbleCommand() {
 
     Runnable onInitialize = () -> {
