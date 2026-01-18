@@ -10,15 +10,18 @@ import frc.robot.subsystems.Elevator;
 import frc.robot.subsystems.ElevatorStateMachine;
 import frc.robot.subsystems.ElevatorStateMachine.ElevatorState;
 import frc.robot.subsystems.Servo;
+import frc.robot.subsystems.SwerveDriveTrain;
 import frc.robot.commands.*;
 
 import java.util.function.BooleanSupplier;
 import java.util.function.DoubleSupplier;
 
-
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.button.CommandJoystick; 
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
@@ -38,6 +41,14 @@ public class RobotContainer {
   private final Elevator elevator = new Elevator(cont);
   private final Servo s = new Servo();
   private CoralManipulator coralManipulator;
+
+  private Pose2d startPose = new Pose2d(0, 0, new Rotation2d(0));
+
+  private SwerveDriveTrain swerveDriveTrain = new SwerveDriveTrain(startPose, 
+  Constants.SwerveModuleIOConfig.moduleFL, Constants.SwerveModuleIOConfig.moduleFR, 
+  Constants.SwerveModuleIOConfig.moduleBL, Constants.SwerveModuleIOConfig.moduleBR);
+
+  SwerveTeleopCMD driveCMD = new SwerveTeleopCMD(swerveDriveTrain, cont);
 
   private final ElevatorStateMachine stateMachine = new ElevatorStateMachine(elevator);
   
@@ -79,6 +90,7 @@ public class RobotContainer {
   public RobotContainer() {
     // Configure the trigger bindings
     configureBindings();
+    swerveDriveTrain.setDefaultCommand(driveCMD);
   }
 
 
@@ -102,14 +114,17 @@ public class RobotContainer {
 
     cont.leftBumper().onTrue(new javnishservo(s, 1800));
     cont.rightBumper().onTrue(new javnishservo(s, 2000));
+
+    cont.start().onTrue(swerveDriveTrain.resetHeadingCommand());
+    
     // cont.a().onTrue(new javnishservo(s, 1500));
     // cont.b().onTrue(new javnishservo(s, 2000));
     // cont.x().onTrue(new javnishservo(s, 2500));
 
 
-    manualControl.onTrue(MANUAL).onFalse(MANUAL_HOLDING);
+    // manualControl.onTrue(MANUAL).onFalse(MANUAL_HOLDING);
 
-    manualControl.negate().and(revLimitSwitchPressed).onTrue(MANUAL_IDLE);
+    // manualControl.negate().and(revLimitSwitchPressed).onTrue(MANUAL_IDLE);
     
     //When it is NOT in manual control AND IS idle, witch to idle
     // manualControl.and(() -> !elevator.isIdle()).onFalse(MANUAL_IDLE);
@@ -129,10 +144,20 @@ public class RobotContainer {
     // atSetpoint.onTrue(elevator.rumbleCommand());
 
     coralManipulator = new CoralManipulator();
+
+    Trigger pivotSwitchPressed = new Trigger(() -> {
+        return coralManipulator.isAtRevLimit();
+    });
+
+    pivotSwitchPressed.onTrue(coralManipulator.resetEncoder());
+
     //make the controller rumble when the elevator reaches a setpoint
     // atSetpoint.onTrue(elevator.rumbleCommand());
 
     cont.povUp().onTrue(coralManipulator.pivotScissors());
+    cont.povDown().onTrue(coralManipulator.pivotScissorsDown());
+
+    cont.povLeft().onTrue(coralManipulator.resetEncoder());
 
   }
 
@@ -140,5 +165,6 @@ public class RobotContainer {
     // An example command will be run in autonomous
     return elevator.setHeight(ElevatorConstants.L4_HEIGHT);
   }
+
 
 }

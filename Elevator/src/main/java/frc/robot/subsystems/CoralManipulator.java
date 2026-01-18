@@ -1,6 +1,7 @@
 package frc.robot.subsystems;
 
 import com.revrobotics.AbsoluteEncoder;
+import com.revrobotics.RelativeEncoder;
 import com.revrobotics.spark.SparkBase.PersistMode;
 import com.revrobotics.spark.SparkBase.ResetMode;
 import com.revrobotics.spark.SparkClosedLoopController;
@@ -29,7 +30,9 @@ public class CoralManipulator extends SubsystemBase {
     private final SparkMax pivotMotor = new SparkMax(21, MotorType.kBrushless);
 
     AbsoluteEncoder absEncoder;
+    RelativeEncoder relEncoder;
     SparkClosedLoopController pidPivot;
+;
     boolean enableTeleop = false;
 
     private final double forwardSoftLimit = 0.09;
@@ -46,38 +49,33 @@ public class CoralManipulator extends SubsystemBase {
 
     public CoralManipulator() {
         this.pidPivot = pivotMotor.getClosedLoopController();
-        this.absEncoder = pivotMotor.getAbsoluteEncoder();
-        
-        // Configuration for coral motors
-        SparkMaxConfig coralConfig1 = new SparkMaxConfig();
-        coralMotor1.configure(coralConfig1, ResetMode.kResetSafeParameters, PersistMode.kNoPersistParameters);
-
-        SparkMaxConfig coralConfig2 = new SparkMaxConfig();
-        coralConfig2.inverted(true);
-        coralMotor2.configure(coralConfig2, ResetMode.kResetSafeParameters, PersistMode.kNoPersistParameters);
+        this.relEncoder = pivotMotor.getEncoder();
+        // this.absEncoder = pivotMotor.getAbsoluteEncoder();
 
         // Configuration for pivot motor
         SparkMaxConfig pivotConfig  = new SparkMaxConfig();
         pivotConfig.closedLoop.pid(
-            2, // p
+            0.035, // p
             0,    // i
-            0    // d
-        );
-        pivotConfig.closedLoop.feedbackSensor(FeedbackSensor.kAbsoluteEncoder);
+            0.3    // d
+        ); 
+
+
+        pivotConfig.closedLoop.feedbackSensor(FeedbackSensor.kPrimaryEncoder);
+
 
         pivotConfig.smartCurrentLimit(10);
-        pivotConfig.inverted(true);
 
-        pivotConfig.absoluteEncoder.inverted(true);
-        pivotConfig.absoluteEncoder.zeroOffset(.425);
-        pivotConfig.absoluteEncoder.zeroCentered(true);
+        // pivotConfig.absoluteEncoder.inverted(true);
+        // pivotConfig.absoluteEncoder.zeroOffset(.425);
+        // pivotConfig.absoluteEncoder.zeroCentered(true);
 
         // Limit switch configuration
         LimitSwitchConfig limitSwitchConfig = new LimitSwitchConfig();
         limitSwitchConfig.forwardLimitSwitchType(Type.kNormallyClosed);
         limitSwitchConfig.reverseLimitSwitchType(Type.kNormallyClosed);
-        limitSwitchConfig.forwardLimitSwitchEnabled(true);
-        limitSwitchConfig.reverseLimitSwitchEnabled(true);
+        limitSwitchConfig.forwardLimitSwitchEnabled(false);
+        limitSwitchConfig.reverseLimitSwitchEnabled(false);
         
 
         // Soft limit configuration
@@ -93,14 +91,29 @@ public class CoralManipulator extends SubsystemBase {
         softLimitConfig.reverseSoftLimit(revSoftLimit);
 
         // Apply configurations
-        pivotConfig.apply(softLimitConfig);
+        // pivotConfig.apply(softLimitConfig);
         
-        pivotConfig.apply(limitSwitchConfig);
+        // pivotConfig.apply(limitSwitchConfig);
         pivotMotor.configure(pivotConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
         
         FWDLimit = pivotMotor.getForwardLimitSwitch();
         REVLimit = pivotMotor.getReverseLimitSwitch();
     }
+
+    public Command resetEncoder() {
+        return this.runOnce(() -> {
+            relEncoder.setPosition(0);
+        });
+    }
+
+    public void voidReset() {
+        relEncoder.setPosition(0);
+    }
+
+    public boolean isAtRevLimit() {
+        return REVLimit.isPressed();
+    }
+
 
     //.115 for L1
 
@@ -113,7 +126,15 @@ public class CoralManipulator extends SubsystemBase {
     }
     public Command pivotScissors() {
         return this.runOnce(() -> {
-            this.setpoint = -.130;
+            this.setpoint = -22;
+            System.out.println("running scissors pivot command");
+            this.pidPivot.setReference(setpoint, SparkMax.ControlType.kPosition);
+        });
+    }
+    public Command pivotScissorsDown() {
+        return this.runOnce(() -> {
+            this.setpoint = 0;
+            System.out.println("running scissors pivot command");
             this.pidPivot.setReference(setpoint, SparkMax.ControlType.kPosition);
         });
     }
@@ -170,7 +191,8 @@ public class CoralManipulator extends SubsystemBase {
     
     public void periodic() {
         // SmartDashboard.putNumber("ABSENC POS", this.absEncoder.getPosition());
-        SmartDashboard.putNumber("pivot Pos", this.absEncoder.getPosition());
+        // SmartDashboard.putNumber("pivot Pos", this.absEncoder.getPosition());
+        SmartDashboard.putNumber("pivot pos relative", relEncoder.getPosition());
         // SmartDashboard.putNumber("pivot vel", this.absEncoder.getVelocity());
         //SmartDashboard.putNumber("Relative Encoder Angle", this.relEnc.getPosition()/this.conversionFactor);
 
