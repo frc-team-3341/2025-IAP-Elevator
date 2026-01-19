@@ -17,9 +17,6 @@ public class SwerveTeleopCMD extends Command {
 
    private double robotSpeed = 2.0;
 
-   private double xMult = 1.0;
-   private double yMult = 1.0;
-
    private JoystickUtil joyUtil = new JoystickUtil();
 
    // Slew rate limit controls
@@ -83,8 +80,8 @@ public class SwerveTeleopCMD extends Command {
       newHypot = MathUtil.applyDeadband(newHypot, Constants.SwerveConstants.deadBand);
 
       //Through magic we can convert the controller input into a vector that can be applied to the robot
-      double correctedX = rightTriggerVal * xMult * newHypot * Math.cos(polarCoords[1]);
-      double correctedY =  rightTriggerVal * yMult * newHypot * Math.sin(polarCoords[1]);
+      double correctedX = rightTriggerVal  * newHypot * Math.cos(polarCoords[1]);
+      double correctedY =  rightTriggerVal * newHypot * Math.sin(polarCoords[1]);
 
       // Drive swerveDriveTrain with values
       this.swerveDriveTrain.drive(new Translation2d(correctedX, correctedY),

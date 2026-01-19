@@ -1,17 +1,9 @@
 package frc.robot.subsystems;
 
-import static edu.wpi.first.units.Units.Inches;
-import static edu.wpi.first.units.Units.KilogramSquareMeters;
-import static edu.wpi.first.units.Units.Kilograms;
-import static edu.wpi.first.units.Units.Meters;
-import static edu.wpi.first.units.Units.Volts;
-
-import java.util.function.DoubleSupplier;
-
-
 import com.studica.frc.AHRS;
 import com.studica.frc.AHRS.NavXComType;
 
+import edu.wpi.first.hal.JNIWrapper;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -20,22 +12,15 @@ import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
-import edu.wpi.first.math.system.plant.DCMotor;
-import edu.wpi.first.math.util.Units;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.StructArrayPublisher;
 import edu.wpi.first.networktables.StructPublisher;
-import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.PowerDistribution;
 import edu.wpi.first.wpilibj.Timer;
-import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
-import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
-import frc.robot.Robot;
 import frc.util.SwerveUtil;
 
 /**
@@ -144,11 +129,11 @@ public class SwerveDriveTrain extends SubsystemBase {
       SmartDashboard.putNumber("Angle", getHeading());
 
       
-
+      SmartDashboard.putBoolean("is calibartig", navx.isCalibrating());
  
       SmartDashboard.putNumber("offsetNavx", offsetNavx.getDegrees());
       //SmartDashboard.putNumber("pose.getRotation()", pose.getRotation().getDegrees());
-      SmartDashboard.putNumber("navx.getRotation2d", navx.getRotation2d().getDegrees());
+      SmartDashboard.putNumber("navx.getRotation2d", getHeading());
 
       SmartDashboard.putNumber("Match Time", Timer.getMatchTime());
 
@@ -203,24 +188,6 @@ public class SwerveDriveTrain extends SubsystemBase {
       }
    }
 
-   /**
-    * Drive the robot for PathPlannerLib
-    */
-   public void driveRelative(ChassisSpeeds speeds) {
-      speeds = SwerveUtil.discretize(speeds, -4.0);
-
-      SwerveModuleState[] swerveModuleStates = this.kinematics.toSwerveModuleStates(speeds);
-
-      // MUST USE SECOND TYPE OF METHOD
-      SwerveDriveKinematics.desaturateWheelSpeeds(swerveModuleStates, speeds,
-            Constants.SwerveConstants.maxWheelLinearVelocityMeters,
-            Constants.SwerveConstants.maxChassisTranslationalSpeed,
-            Constants.SwerveConstants.maxChassisAngularVelocity);
-
-      for (int i = 0; i < swerveModuleStates.length; i++) {
-         this.moduleIO[i].setDesiredState(swerveModuleStates[i]);
-      }
-   }
    /**
     * Gets the SwerveModuleState[] for our use in code.
     */

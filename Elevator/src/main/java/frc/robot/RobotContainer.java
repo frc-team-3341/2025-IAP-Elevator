@@ -18,11 +18,8 @@ import java.util.function.DoubleSupplier;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
-import edu.wpi.first.wpilibj2.command.InstantCommand;
-import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.button.CommandJoystick; 
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
@@ -112,14 +109,10 @@ public class RobotContainer {
     cont.b().onTrue(MOVING_TO_L3);
     cont.y().onTrue(MOVING_TO_L4);
 
-    cont.leftBumper().onTrue(new javnishservo(s, 1800));
+    cont.leftBumper().onTrue(new javnishservo(s, 1750));
     cont.rightBumper().onTrue(new javnishservo(s, 2000));
 
     cont.start().onTrue(swerveDriveTrain.resetHeadingCommand());
-    
-    // cont.a().onTrue(new javnishservo(s, 1500));
-    // cont.b().onTrue(new javnishservo(s, 2000));
-    // cont.x().onTrue(new javnishservo(s, 2500));
 
 
     // manualControl.onTrue(MANUAL).onFalse(MANUAL_HOLDING);
@@ -156,6 +149,11 @@ public class RobotContainer {
 
     cont.povUp().onTrue(coralManipulator.pivotScissors());
     cont.povDown().onTrue(coralManipulator.pivotScissorsDown());
+
+    cont.back().onTrue(new javnishservo(s, 2000).
+    andThen(new DelayCommand(0.1).andThen(new javnishservo(s, 1750).
+    andThen(new DelayCommand(0.2).andThen(new javnishservo(s, 2000)).
+    andThen(new DelayCommand(0.1).andThen(new javnishservo(s, 1750)))))));
 
     cont.povLeft().onTrue(coralManipulator.resetEncoder());
 

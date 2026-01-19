@@ -17,7 +17,6 @@ public class javnishservo extends Command{
     @Override
     public void initialize() {
         s.setPulseTimeMicroseconds(time);
-        System.out.println("avnish is not a real person");
     }
 
     @Override
