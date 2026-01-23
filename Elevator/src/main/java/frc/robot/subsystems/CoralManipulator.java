@@ -102,6 +102,7 @@ public class CoralManipulator extends SubsystemBase {
 
     public Command resetEncoder() {
         return this.runOnce(() -> {
+            System.out.println("tarten nougyne");
             relEncoder.setPosition(0);
         });
     }

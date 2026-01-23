@@ -109,8 +109,8 @@ public class RobotContainer {
     cont.b().onTrue(MOVING_TO_L3);
     cont.y().onTrue(MOVING_TO_L4);
 
-    cont.leftBumper().onTrue(new javnishservo(s, 1750));
-    cont.rightBumper().onTrue(new javnishservo(s, 2000));
+    cont.leftBumper().onTrue(new javnishservo(s, 1900));
+    cont.rightBumper().onTrue(new javnishservo(s, 2100));
 
     cont.start().onTrue(swerveDriveTrain.resetHeadingCommand());
 
@@ -147,13 +147,31 @@ public class RobotContainer {
     //make the controller rumble when the elevator reaches a setpoint
     // atSetpoint.onTrue(elevator.rumbleCommand());
 
-    cont.povUp().onTrue(coralManipulator.pivotScissors());
-    cont.povDown().onTrue(coralManipulator.pivotScissorsDown());
+    cont.povUp().whileTrue(coralManipulator.pivotScissors());
+    cont.povDown().whileTrue(coralManipulator.pivotScissorsDown());
 
     cont.back().onTrue(new javnishservo(s, 2000).
-    andThen(new DelayCommand(0.1).andThen(new javnishservo(s, 1750).
-    andThen(new DelayCommand(0.2).andThen(new javnishservo(s, 2000)).
-    andThen(new DelayCommand(0.1).andThen(new javnishservo(s, 1750)))))));
+    andThen(new DelayCommand(0.1).andThen(new javnishservo(s, 1900).
+    andThen(new DelayCommand(0.2).andThen(new javnishservo(s, 2100)).
+    andThen(new DelayCommand(0.1).andThen(new javnishservo(s, 1900).
+    andThen(new DelayCommand(0.2).andThen(new javnishservo(s, 2100).
+    andThen(new DelayCommand(0.1).andThen(new javnishservo(s, 1900)).
+    andThen(new DelayCommand(0.2).andThen(new javnishservo(s, 2100).
+    andThen(new DelayCommand(0.1).andThen(new javnishservo(s, 1900).
+    andThen(new DelayCommand(0.2).andThen(new javnishservo(s, 2100).
+    andThen(new DelayCommand(0.1).andThen(new javnishservo(s, 1900)).
+    andThen(new DelayCommand(0.2).andThen(new javnishservo(s, 2100).
+    andThen(new DelayCommand(0.1).andThen(new javnishservo(s, 1900).
+    andThen(new DelayCommand(0.2).andThen(new javnishservo(s, 2100)).
+    andThen(new DelayCommand(0.1).andThen(new javnishservo(s, 1900).
+    andThen(new DelayCommand(0.2).andThen(new javnishservo(s, 2100).
+    andThen(new DelayCommand(0.1).andThen(new javnishservo(s, 1900))))))))))))))))))))))))))));
+
+    // cont.back().whileTrue(new javnishservo(s, 2000).
+    // andThen(new DelayCommand(0.1).andThen(new javnishservo(s, 1750).
+    // andThen(new DelayCommand(0.2).andThen(new javnishservo(s, 2000).andThen(
+    //     new javnishservo(s, 1750)
+    // ))))));
 
     cont.povLeft().onTrue(coralManipulator.resetEncoder());
 
